@@ -16,5 +16,11 @@
         "psr-4": {
             "PattonWebz\\Psr3Logger\\Tests\\": "tests/"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }
