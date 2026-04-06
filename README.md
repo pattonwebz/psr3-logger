@@ -19,7 +19,7 @@ How Composer resolves `psr/log` by PHP version:
 Notes:
 
 - `psr/log` 2.x and 3.x require PHP 8+.
-- Keeping all three majors in constraints gives broad install compatibility. I don't always know where I will need to use this.
+- Keeping all three majors in constraints ensures the widest consumer compatibility.
 
 ## Installation
 

@@ -114,7 +114,7 @@ class Logger implements LoggerInterface {
 	/**
 	 * Sets a prefix to prepend to all logged messages.
 	 *
-	 * Useful for distinguishing log sources (e.g., "[MyPlugin] " or "[Queue] ").
+	 * Useful for distinguishing log sources (e.g., "[app] " or "[queue-worker] ").
 	 * Applied after interpolation but before calling writeLog().
 	 *
 	 * @param  string $prefix Prefix string to prepend (can be empty to clear).
@@ -348,6 +348,6 @@ class Logger implements LoggerInterface {
 	 * @return void
 	 */
 	protected function writeLog( string $level, string $message ): void {
-		error_log( $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging.
+		error_log( $message );
 	}
 }
