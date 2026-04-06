@@ -286,7 +286,7 @@ class Logger implements LoggerInterface {
 	 * @param string $message Log message.
 	 * @return void
 	 */
-	private function writeLog( string $level, string $message ): void {
+	protected function writeLog( string $level, string $message ): void {
 		error_log( $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging.
 	}
 }
