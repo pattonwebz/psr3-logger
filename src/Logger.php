@@ -12,33 +12,43 @@ use Psr\Log\LogLevel;
 use Psr\Log\InvalidArgumentException;
 
 /**
- * PSR-3 compatible logger implementation.
+ * Standalone PSR-3 logger implementation.
+ *
+ * Provides level-based filtering, message interpolation, prefix support,
+ * and a protected writeLog() hook for custom output destinations. By default,
+ * writes to PHP's error_log().
  */
 class Logger implements LoggerInterface {
 
 	/**
-	 * Log prefix for all log messages.
+	 * Prefix prepended to all logged messages.
 	 *
 	 * @var string
 	 */
 	private $prefix = '';
 
 	/**
-	 * Minimum log level to record.
+	 * Minimum PSR-3 level required for a message to be logged.
+	 *
+	 * Messages below this threshold are silently dropped.
 	 *
 	 * @var string
 	 */
 	private $minimum_level;
 
 	/**
-	 * Whether to log to WordPress debug.log.
+	 * Controls whether log messages are written.
+	 *
+	 * When disabled, all messages are silently dropped regardless of level.
 	 *
 	 * @var bool
 	 */
 	private $enabled;
 
 	/**
-	 * Valid log levels as defined by PSR-3.
+	 * List of all valid PSR-3 log level constants.
+	 *
+	 * Used to validate level strings passed to log() and setMinimumLevel().
 	 *
 	 * @var array
 	 */
@@ -54,7 +64,10 @@ class Logger implements LoggerInterface {
 	];
 
 	/**
-	 * Severity map to translate PSR-3 levels to WordPress log levels.
+	 * Maps PSR-3 levels to numeric severity values for threshold comparisons.
+	 *
+	 * Lower numbers represent higher severity (EMERGENCY = 0, DEBUG = 7).
+	 * Used by isLevelLoggable() to determine if a message meets the minimum threshold.
 	 *
 	 * @var array
 	 */
@@ -70,10 +83,10 @@ class Logger implements LoggerInterface {
 	];
 
 	/**
-	 * Constructor.
+	 * Constructs a new logger with the specified minimum level and enabled state.
 	 *
-	 * @param string $minimum_level Minimum log level to record.
-	 * @param bool   $enabled Whether logging is enabled.
+	 * @param string $minimum_level Minimum PSR-3 level to log (default: DEBUG logs everything).
+	 * @param bool   $enabled       Whether logging is enabled (default: true).
 	 */
 	public function __construct( string $minimum_level = LogLevel::DEBUG, bool $enabled = true ) {
 		$this->setMinimumLevel( $minimum_level );
@@ -81,11 +94,14 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Set the minimum log level.
+	 * Sets the minimum log level threshold.
 	 *
-	 * @param string $level PSR-3 log level.
-	 * @return self
-	 * @throws InvalidArgumentException If level is invalid.
+	 * Messages below this level are silently dropped. Setting a higher severity
+	 * level (e.g., WARNING) filters out lower-priority messages (INFO, DEBUG).
+	 *
+	 * @param  string $level PSR-3 log level constant (use Psr\Log\LogLevel).
+	 * @return self          Returns this instance for method chaining.
+	 * @throws InvalidArgumentException If $level is not a valid PSR-3 level.
 	 */
 	public function setMinimumLevel( string $level ): self {
 		if ( ! in_array( $level, $this->valid_levels, true ) ) {
@@ -96,10 +112,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Set the log prefix.
+	 * Sets a prefix to prepend to all logged messages.
 	 *
-	 * @param string $prefix Log prefix.
-	 * @return self
+	 * Useful for distinguishing log sources (e.g., "[MyPlugin] " or "[Queue] ").
+	 * Applied after interpolation but before calling writeLog().
+	 *
+	 * @param  string $prefix Prefix string to prepend (can be empty to clear).
+	 * @return self           Returns this instance for method chaining.
 	 */
 	public function setPrefix( string $prefix ): self {
 		$this->prefix = $prefix;
@@ -107,10 +126,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Enable or disable logging.
+	 * Enables or disables all logging output.
 	 *
-	 * @param bool $enabled Whether logging is enabled.
-	 * @return self
+	 * When disabled, all messages are silently dropped regardless of level.
+	 * Useful for toggling logging in different environments without reconstructing the logger.
+	 *
+	 * @param  bool $enabled True to enable logging, false to disable.
+	 * @return self          Returns this instance for method chaining.
 	 */
 	public function setEnabled( bool $enabled ): self {
 		$this->enabled = $enabled;
@@ -118,10 +140,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Check if a message at the given level would be logged.
+	 * Determines whether a message at the given level would be logged.
 	 *
-	 * @param string $level PSR-3 log level.
-	 * @return bool
+	 * Returns false if logging is disabled, if the level is invalid, or if
+	 * the level's severity is below the configured minimum threshold.
+	 *
+	 * @param  string $level PSR-3 log level to check.
+	 * @return bool          True if the level would be logged, false otherwise.
 	 */
 	public function isLevelLoggable( string $level ): bool {
 		if ( ! $this->enabled ) {
@@ -136,10 +161,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * System is unusable.
+	 * Logs a message indicating the system is unusable.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for catastrophic failures requiring immediate attention (e.g., entire
+	 * application down, database unavailable). Delegates to log() with EMERGENCY level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function emergency( $message, array $context = [] ): void {
@@ -147,10 +175,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Action must be taken immediately.
+	 * Logs a message indicating action must be taken immediately.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for urgent problems requiring immediate intervention (e.g., security breach,
+	 * payment gateway down). Delegates to log() with ALERT level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function alert( $message, array $context = [] ): void {
@@ -158,10 +189,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Critical conditions.
+	 * Logs a critical condition.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for serious problems that don't require immediate action but need urgent
+	 * investigation (e.g., service degraded, backup failed). Delegates to log() with CRITICAL level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function critical( $message, array $context = [] ): void {
@@ -169,11 +203,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Runtime errors that do not require immediate action but should typically
-	 * be logged and monitored.
+	 * Logs a runtime error that should be monitored.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for recoverable errors that don't require immediate action but should be
+	 * tracked (e.g., API call failed, validation error). Delegates to log() with ERROR level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function error( $message, array $context = [] ): void {
@@ -181,10 +217,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Exceptional occurrences that are not errors.
+	 * Logs an exceptional occurrence that is not an error.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for unexpected but non-critical situations (e.g., deprecated API usage,
+	 * slow query). Delegates to log() with WARNING level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function warning( $message, array $context = [] ): void {
@@ -192,10 +231,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Normal but significant events.
+	 * Logs a normal but significant event.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for noteworthy events that are part of normal operation (e.g., user login,
+	 * cache cleared). Delegates to log() with NOTICE level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function notice( $message, array $context = [] ): void {
@@ -203,10 +245,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Interesting events.
+	 * Logs an informational message.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for general informational messages about application flow (e.g., task started,
+	 * configuration loaded). Delegates to log() with INFO level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function info( $message, array $context = [] ): void {
@@ -214,10 +259,13 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Detailed debug information.
+	 * Logs detailed debugging information.
 	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Use for verbose diagnostic data useful during development (e.g., variable dumps,
+	 * execution traces). Delegates to log() with DEBUG level.
+	 *
+	 * @param  string|Stringable $message Message to log.
+	 * @param  array             $context Key-value pairs for placeholder interpolation.
 	 * @return void
 	 */
 	public function debug( $message, array $context = [] ): void {
@@ -225,13 +273,17 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Logs with an arbitrary level.
+	 * Logs a message at an arbitrary PSR-3 level.
 	 *
-	 * @param string $level   PSR-3 log level.
-	 * @param string $message Message to log.
-	 * @param array  $context Context data.
+	 * Validates the level, applies threshold filtering via isLevelLoggable(),
+	 * interpolates {placeholder} tokens from $context, prepends the configured
+	 * prefix, and calls writeLog() to output the final message.
+	 *
+	 * @param  mixed             $level   PSR-3 level string (use Psr\Log\LogLevel constants).
+	 * @param  string|Stringable $message Log message; cast to string before interpolation.
+	 * @param  array             $context Key-value pairs to interpolate into {placeholder} tokens.
 	 * @return void
-	 * @throws InvalidArgumentException If level is invalid.
+	 * @throws InvalidArgumentException If $level is not a valid PSR-3 level.
 	 */
 	public function log( $level, $message, array $context = [] ): void {
 		if ( ! in_array( $level, $this->valid_levels, true ) ) {
@@ -249,11 +301,16 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Interpolates context values into the message placeholders.
+	 * Interpolates context values into message placeholders.
 	 *
-	 * @param string $message Message with placeholders.
-	 * @param array  $context Context data.
-	 * @return string
+	 * Replaces {key} tokens with corresponding $context values. Scalars and
+	 * Stringable objects are cast to string; arrays are JSON-encoded; null
+	 * becomes "null"; non-Stringable objects become "[object ClassName]";
+	 * resources become "[resource]".
+	 *
+	 * @param  string $message Message template with {placeholder} tokens.
+	 * @param  array  $context Key-value pairs to interpolate.
+	 * @return string          Message with placeholders replaced.
 	 */
 	private function interpolate( string $message, array $context ): string {
 		if ( empty( $context ) ) {
@@ -280,10 +337,14 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Write the log message to the appropriate destination.
+	 * Writes the formatted log message to the output destination.
 	 *
-	 * @param string $level PSR-3 log level.
-	 * @param string $message Log message.
+	 * The base implementation sends messages to PHP's error_log() function.
+	 * Subclasses can override this method to write to custom destinations
+	 * (e.g., files, databases, external services).
+	 *
+	 * @param  string $level   PSR-3 log level.
+	 * @param  string $message Fully interpolated and prefixed log message.
 	 * @return void
 	 */
 	protected function writeLog( string $level, string $message ): void {
