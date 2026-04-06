@@ -4,22 +4,13 @@ A small PSR-3 compatible logger plus a convenience trait for class-level logging
 
 ## Compatibility
 
-This package currently declares:
+This package requires:
 
 - `php`: `>=7.4`
-- `psr/log`: `^1.1 || ^2.0 || ^3.0`
+- `psr/log`: `^1.1`
 
-How Composer resolves `psr/log` by PHP version:
-
-| Runtime PHP | Typical resolved `psr/log` major |
-| --- | --- |
-| 7.4 | 1.x |
-| 8.0+ | 1.x, 2.x, or 3.x |
-
-Notes:
-
-- `psr/log` 2.x and 3.x require PHP 8+.
-- Keeping all three majors in constraints ensures the widest consumer compatibility.
+`psr/log` 1.x supports PHP 5.3+, making this package compatible with any PHP 7.4+ environment without
+version conflicts.
 
 ## Installation
 
