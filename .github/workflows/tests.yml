@@ -41,7 +41,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          coverage: none
+          coverage: xdebug
 
       - name: Pin psr/log to ${{ matrix.psr-log }}
         run: composer require --no-update "psr/log:${{ matrix.psr-log }}"
@@ -51,4 +51,9 @@ jobs:
 
       - name: Run tests
         run: composer test
+        env:
+          XDEBUG_MODE: coverage
+
+      - name: Assert 100 % coverage (summary only)
+        run: XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-text --colors=never | grep -E "Lines:\s+100\.00"
 

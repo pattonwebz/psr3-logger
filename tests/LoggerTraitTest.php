@@ -47,6 +47,28 @@ final class LoggerTraitTest extends TestCase
         TraitHarness::setLogger($logger);
         TraitHarness::logAny(LogLevel::NOTICE, 'notice text', ['k' => 'v']);
     }
+
+    public function test_all_convenience_methods_forward_to_injected_logger(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $logger->expects(self::once())->method('error')    ->with('err',  []);
+        $logger->expects(self::once())->method('critical') ->with('crit', []);
+        $logger->expects(self::once())->method('warning')  ->with('warn', []);
+        $logger->expects(self::once())->method('notice')   ->with('note', []);
+        $logger->expects(self::once())->method('alert')    ->with('alrt', []);
+        $logger->expects(self::once())->method('emergency')->with('emrg', []);
+        $logger->expects(self::once())->method('debug')    ->with('dbg',  []);
+
+        TraitHarness::setLogger($logger);
+        TraitHarness::logError('err');
+        TraitHarness::logCritical('crit');
+        TraitHarness::logWarning('warn');
+        TraitHarness::logNotice('note');
+        TraitHarness::logAlert('alrt');
+        TraitHarness::logEmergency('emrg');
+        TraitHarness::logDebug('dbg');
+    }
 }
 
 final class TraitHarness
@@ -63,9 +85,43 @@ final class TraitHarness
         self::log($level, $message, $context);
     }
 
+    public static function logError(string $message, array $context = []): void
+    {
+        self::log_error($message, $context);
+    }
+
+    public static function logCritical(string $message, array $context = []): void
+    {
+        self::log_critical($message, $context);
+    }
+
+    public static function logWarning(string $message, array $context = []): void
+    {
+        self::log_warning($message, $context);
+    }
+
+    public static function logNotice(string $message, array $context = []): void
+    {
+        self::log_notice($message, $context);
+    }
+
+    public static function logAlert(string $message, array $context = []): void
+    {
+        self::log_alert($message, $context);
+    }
+
+    public static function logEmergency(string $message, array $context = []): void
+    {
+        self::log_emergency($message, $context);
+    }
+
+    public static function logDebug(string $message, array $context = []): void
+    {
+        self::log_debug($message, $context);
+    }
+
     public static function resetLogger(): void
     {
         self::$logger = null;
     }
 }
-
