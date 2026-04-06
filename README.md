@@ -1,5 +1,11 @@
 # pattonwebz/psr3-logger
 
+[![Tests](https://github.com/pattonwebz/psr3-logger/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/pattonwebz/psr3-logger/actions/workflows/tests.yml)
+[![Coverage Status](https://coveralls.io/repos/github/pattonwebz/psr3-logger/badge.svg?branch=master)](https://coveralls.io/github/pattonwebz/psr3-logger?branch=master)
+![PHP >=7.4](https://img.shields.io/badge/php-%3E%3D7.4-777BB4.svg?logo=php&logoColor=white)
+![psr/log ^1.1](https://img.shields.io/badge/psr%2Flog-%5E1.1-blue)
+![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-green.svg)
+
 A small PSR-3 compatible logger plus a convenience trait for class-level logging.
 
 ## Compatibility
