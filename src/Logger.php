@@ -2,10 +2,10 @@
 /**
  * PSR-3 compatible logger implementation
  *
- * @package Pattonwebz\Psr3Logger
+ * @package PattonWebz\Psr3Logger
  */
 
-namespace Pattonwebz\Psr3Logger;
+namespace PattonWebz\Psr3Logger;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;

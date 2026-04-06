@@ -32,7 +32,7 @@ composer require pattonwebz/psr3-logger
 ```php
 <?php
 
-use Pattonwebz\Psr3Logger\Logger;
+use PattonWebz\Psr3Logger\Logger;
 use Psr\Log\LogLevel;
 
 $logger = new Logger(LogLevel::INFO, true);
@@ -47,8 +47,8 @@ $logger->debug('This will be skipped because minimum level is INFO');
 ```php
 <?php
 
-use Pattonwebz\Psr3Logger\Logger;
-use Pattonwebz\Psr3Logger\LoggerTrait;
+use PattonWebz\Psr3Logger\Logger;
+use PattonWebz\Psr3Logger\LoggerTrait;
 
 class Worker {
     use LoggerTrait;

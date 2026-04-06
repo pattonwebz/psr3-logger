@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Pattonwebz\\Psr3Logger\\": "src/"
+            "PattonWebz\\Psr3Logger\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Pattonwebz\\Psr3Logger\\Tests\\": "tests/"
+            "PattonWebz\\Psr3Logger\\Tests\\": "tests/"
         }
     }
 }
